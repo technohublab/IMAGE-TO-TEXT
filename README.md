@@ -1,2 +1,207 @@
-# IMAGE-TO-TEXT
-You can convert your images into rich text 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Text Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: calc(100% - 22px);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            width: calc(100% - 22px);
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        #output {
+            text-align: left;
+            white-space: pre-wrap; /* Preserves whitespace and line breaks */
+            word-wrap: break-word; /* Breaks long words */
+        }
+        #downloadBtn {
+            background-color: #28a745;
+            display: none; /* Hidden by default, shown when text is available */
+        }
+        #downloadBtn:hover {
+            background-color: #218838;
+        }
+        #status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .advertisement {
+            margin-top: 30px;
+            border: 1px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            background-color: #fafafa;
+            color: #555;
+            width: 100%;
+            max-width: 700px;
+            border-radius: 8px;
+        }
+        .advertisement-content {
+            /* This is where your actual ad code/script will go */
+            min-height: 100px; /* Placeholder for ad size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image to Text Converter</h1>
+
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="convertBtn">Convert Image to Text</button>
+
+        <p id="status"></p>
+
+        <h2>Extracted Text:</h2>
+        <textarea id="outputText" readonly placeholder="Extracted text will appear here..."></textarea>
+        <button id="downloadBtn">Download Text</button>
+    </div>
+
+    <div class="advertisement">
+        <h3>Sponsored Content</h3>
+        <div class="advertisement-content">
+            <p>Your Advertising Content Here (e.g., Google AdSense, direct ad image)</p>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-PUB_YOUR_ADSENSE_ID"
+     crossorigin="anonymous"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-PUB_YOUR_ADSENSE_ID"
+     data-ad-slot="YOUR_AD_SLOT_ID"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        </div>
+    </div>
+
+    <script src='https://unpkg.com/tesseract.js@5.0.0/dist/tesseract.min.js'></script>
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const convertBtn = document.getElementById('convertBtn');
+        const outputText = document.getElementById('outputText');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusDiv = document.getElementById('status');
+
+        convertBtn.addEventListener('click', async () => {
+            const file = imageInput.files[0];
+
+            if (!file) {
+                alert('Please select an image file first.');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                return;
+            }
+
+            statusDiv.textContent = 'Processing image... This may take a moment.';
+            outputText.value = ''; // Clear previous output
+            downloadBtn.style.display = 'none'; // Hide download button initially
+
+            try {
+                const { data: { text } } = await Tesseract.recognize(
+                    file,
+                    'eng', // Language code: 'eng' for English. You can add more like 'hin' for Hindi, etc.
+                           // For multiple languages: 'eng+hin'
+                    {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                statusDiv.textContent = `Progress: ${(m.progress * 100).toFixed(2)}%`;
+                            } else {
+                                statusDiv.textContent = m.status;
+                            }
+                        }
+                    }
+                );
+                outputText.value = text;
+                statusDiv.textContent = 'Conversion complete!';
+                if (text.trim() !== '') {
+                    downloadBtn.style.display = 'block'; // Show download button if text is extracted
+                }
+            } catch (error) {
+                console.error('OCR Error:', error);
+                statusDiv.textContent = 'Error during conversion. Please try again.';
+                outputText.value = 'Failed to extract text.';
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const textToDownload = outputText.value;
+            if (textToDownload.trim() === '') {
+                alert('No text to download.');
+                return;
+            }
+
+            const blob = new Blob([textToDownload], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'extracted_text.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Clean up the URL object
+        });
+    </script>
+</body>
+</html>
+
